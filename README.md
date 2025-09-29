@@ -7,12 +7,15 @@ A high-performance C++ video converter that converts any video format to x264-en
 - **Standard Converter**: Single Full HD output (1920x1080)
 - **ABR Converter**: Multiple quality profiles for adaptive streaming
 - **HLS Converter**: HTTP Live Streaming with m3u8 playlists
+- **HLS Watcher**: Automatic directory monitoring and conversion
 - Converts any video format supported by FFmpeg to x264
 - Automatic resolution scaling
 - Preserves audio tracks (AAC encoding)
 - Optimized for quality and performance
 - Multi-threaded processing
 - Cross-format compatibility
+- Configurable source/destination directories
+- JSON configuration support
 
 ## Prerequisites
 
@@ -142,6 +145,60 @@ output_hls/
     ├── index.m3u8         # 288p variant playlist
     └── segment_*.ts
 ```
+
+### HLS Watcher (Automatic Conversion Service)
+
+```bash
+./hls_watcher [config_file]
+```
+
+Monitors a source directory for new video files and automatically converts them to HLS format.
+
+#### Configuration File
+
+Create a `config.json` file:
+
+```json
+{
+  "watcher": {
+    "source_directory": "/var/media/source",
+    "destination_directory": "/var/media/hls",
+    "watch_interval_seconds": 5,
+    "file_extensions": [".mp4", ".avi", ".mkv", ".mov"],
+    "delete_source_after_conversion": false,
+    "log_file": "/var/log/hls_watcher.log"
+  },
+  "hls": {
+    "segment_duration": 10,
+    "profiles": [...]
+  }
+}
+```
+
+#### Usage Example
+
+```bash
+# Start the watcher service
+./hls_watcher config.json
+
+# Or run as a system service
+nohup ./hls_watcher /etc/hls_watcher/config.json &
+
+# The watcher will:
+# 1. Monitor the source directory
+# 2. Detect new video files
+# 3. Automatically convert to HLS
+# 4. Save to destination directory
+```
+
+#### Features
+
+- **Automatic Detection**: Monitors for new files every N seconds
+- **File Stability Check**: Ensures files are fully written before processing
+- **Configurable Profiles**: Define custom quality profiles in JSON
+- **Logging**: Comprehensive logging to file or console
+- **Graceful Shutdown**: Handles SIGINT/SIGTERM signals
+- **Prevent Reprocessing**: Tracks already converted files
 
 ## Output Specifications
 

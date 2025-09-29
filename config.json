@@ -1,0 +1,52 @@
+{
+  "watcher": {
+    "source_directory": "/var/media/source",
+    "destination_directory": "/var/media/hls",
+    "watch_interval_seconds": 5,
+    "file_extensions": [".mp4", ".avi", ".mkv", ".mov", ".webm"],
+    "delete_source_after_conversion": false,
+    "create_subdirectories": true,
+    "log_file": "/var/log/hls_converter.log"
+  },
+  
+  "hls": {
+    "segment_duration": 10,
+    "profiles": [
+      {
+        "name": "720p",
+        "width": 1280,
+        "height": 720,
+        "video_bitrate": 3200000,
+        "audio_bitrate": 128000,
+        "bandwidth": 3500000,
+        "folder_name": "stream_3500"
+      },
+      {
+        "name": "432p",
+        "width": 768,
+        "height": 432,
+        "video_bitrate": 1300000,
+        "audio_bitrate": 96000,
+        "bandwidth": 1500000,
+        "folder_name": "stream_1500"
+      },
+      {
+        "name": "288p",
+        "width": 512,
+        "height": 288,
+        "video_bitrate": 400000,
+        "audio_bitrate": 64000,
+        "bandwidth": 500000,
+        "folder_name": "stream_500"
+      }
+    ]
+  },
+  
+  "ffmpeg": {
+    "preset": "fast",
+    "h264_profile": "high",
+    "h264_level": "4.1",
+    "threads": 0,
+    "log_level": "warning"
+  }
+}

@@ -25,6 +25,7 @@ pkg_check_modules(X264 IMPORTED_TARGET libx264)
 add_executable(video_converter video_converter.cpp)
 add_executable(video_converter_abr video_converter_abr.cpp)
 add_executable(video_converter_hls video_converter_hls.cpp)
+add_executable(hls_watcher hls_watcher.cpp)
 
 # Include directories
 target_include_directories(video_converter PRIVATE ${LIBAV_INCLUDE_DIRS})
@@ -50,6 +51,12 @@ target_link_libraries(video_converter_abr
 # Link libraries for HLS converter (simpler, uses FFmpeg CLI)
 target_link_libraries(video_converter_hls
     stdc++fs
+)
+
+# Link libraries for HLS watcher
+target_link_libraries(hls_watcher
+    stdc++fs
+    pthread
 )
 
 if(X264_FOUND)
@@ -85,9 +92,24 @@ target_compile_options(video_converter_hls PRIVATE
     -Wpedantic
 )
 
+target_compile_options(hls_watcher PRIVATE 
+    -O3 
+    -march=native 
+    -mtune=native
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
 # Installation
-install(TARGETS video_converter video_converter_abr video_converter_hls
+install(TARGETS video_converter video_converter_abr video_converter_hls hls_watcher
     RUNTIME DESTINATION bin
+)
+
+# Install config file
+install(FILES config.json
+    DESTINATION etc/hls_watcher
+    RENAME config.json.example
 )
 
 # Print configuration summary

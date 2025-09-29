@@ -24,6 +24,7 @@ pkg_check_modules(X264 IMPORTED_TARGET libx264)
 # Add executables
 add_executable(video_converter video_converter.cpp)
 add_executable(video_converter_abr video_converter_abr.cpp)
+add_executable(video_converter_hls video_converter_hls.cpp)
 
 # Include directories
 target_include_directories(video_converter PRIVATE ${LIBAV_INCLUDE_DIRS})
@@ -44,6 +45,11 @@ target_link_libraries(video_converter_abr
     PkgConfig::LIBAV
     stdc++fs
     pthread
+)
+
+# Link libraries for HLS converter (simpler, uses FFmpeg CLI)
+target_link_libraries(video_converter_hls
+    stdc++fs
 )
 
 if(X264_FOUND)
@@ -70,8 +76,17 @@ target_compile_options(video_converter_abr PRIVATE
     -Wpedantic
 )
 
+target_compile_options(video_converter_hls PRIVATE 
+    -O3 
+    -march=native 
+    -mtune=native
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
 # Installation
-install(TARGETS video_converter video_converter_abr
+install(TARGETS video_converter video_converter_abr video_converter_hls
     RUNTIME DESTINATION bin
 )
 

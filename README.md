@@ -6,6 +6,7 @@ A high-performance C++ video converter that converts any video format to x264-en
 
 - **Standard Converter**: Single Full HD output (1920x1080)
 - **ABR Converter**: Multiple quality profiles for adaptive streaming
+- **HLS Converter**: HTTP Live Streaming with m3u8 playlists
 - Converts any video format supported by FFmpeg to x264
 - Automatic resolution scaling
 - Preserves audio tracks (AAC encoding)
@@ -111,6 +112,37 @@ Examples:
 # Creates: output_high.mp4
 ```
 
+### HLS Converter (HTTP Live Streaming)
+
+```bash
+./video_converter_hls <input_file> <output_directory>
+```
+
+Creates HLS streaming structure with master playlist and three quality variants:
+- `stream_3500` - 1280x720 @ 3.5Mbps bandwidth
+- `stream_1500` - 768x432 @ 1.5Mbps bandwidth
+- `stream_500` - 512x288 @ 500kbps bandwidth
+
+Example:
+```bash
+./video_converter_hls input.mp4 output_hls
+```
+
+Creates directory structure:
+```
+output_hls/
+├── playlist.m3u8           # Master playlist
+├── stream_3500/
+│   ├── index.m3u8         # 720p variant playlist
+│   └── segment_*.ts       # Video segments
+├── stream_1500/
+│   ├── index.m3u8         # 432p variant playlist
+│   └── segment_*.ts
+└── stream_500/
+    ├── index.m3u8         # 288p variant playlist
+    └── segment_*.ts
+```
+
 ## Output Specifications
 
 ### Standard Converter
@@ -134,6 +166,20 @@ All profiles use:
 - **Keyframe Interval**: 120 frames (2 seconds at 60fps)
 - **Audio Codec**: AAC (MPEG-4 AAC ADTS)
 - **Container**: MP4 with fragmented output for streaming
+
+### HLS Streaming Profiles
+
+| Profile | Resolution | Video Bitrate | Audio Bitrate | Bandwidth | Folder |
+|---------|------------|---------------|---------------|-----------|--------|
+| 720p    | 1280x720   | 3.2 Mbps      | 128 kbps      | 3.5 Mbps  | stream_3500 |
+| 432p    | 768x432    | 1.3 Mbps      | 96 kbps       | 1.5 Mbps  | stream_1500 |
+| 288p    | 512x288    | 400 kbps      | 64 kbps       | 500 kbps  | stream_500 |
+
+HLS features:
+- **Segment Duration**: 10 seconds per segment
+- **Playlist Format**: HLS v3 compatible
+- **Master Playlist**: playlist.m3u8 with bandwidth ladder
+- **Codec**: H.264 High Profile + AAC audio
 
 ## Performance Optimization
 

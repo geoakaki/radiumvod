@@ -1,11 +1,13 @@
-# Video Converter - x264 Full HD
+# Video Converter - x264 with ABR Support
 
-A high-performance C++ video converter that converts any video format to x264-encoded Full HD (1920x1080) MP4 files.
+A high-performance C++ video converter that converts any video format to x264-encoded MP4 files with support for Adaptive Bitrate (ABR) streaming profiles.
 
 ## Features
 
-- Converts any video format supported by FFmpeg to x264 Full HD
-- Automatic resolution scaling to 1920x1080
+- **Standard Converter**: Single Full HD output (1920x1080)
+- **ABR Converter**: Multiple quality profiles for adaptive streaming
+- Converts any video format supported by FFmpeg to x264
+- Automatic resolution scaling
 - Preserves audio tracks (AAC encoding)
 - Optimized for quality and performance
 - Multi-threaded processing
@@ -75,36 +77,63 @@ make -j$(nproc)
 
 ## Usage
 
+### Standard Converter (Single Full HD Output)
+
 ```bash
 ./video_converter <input_file> <output_file>
 ```
 
-### Examples
-
-Convert AVI to MP4:
+Example:
 ```bash
 ./video_converter movie.avi movie.mp4
 ```
 
-Convert MKV to MP4:
+### ABR Converter (Multiple Quality Profiles)
+
 ```bash
-./video_converter video.mkv output.mp4
+./video_converter_abr <input_file> <output_base> <profile>
 ```
 
-Convert MOV to MP4:
+Available profiles:
+- `high` - 1920x1080 @ 4Mbps video, 128kbps audio (H.264 High Profile)
+- `medium` - 1280x720 @ 2.5Mbps video, 96kbps audio (H.264 Main Profile)  
+- `low` - 854x480 @ 1.2Mbps video, 64kbps audio (H.264 Baseline Profile)
+- `all` - Generate all three profiles
+
+Examples:
 ```bash
-./video_converter recording.mov converted.mp4
+# Generate all ABR profiles
+./video_converter_abr input.mp4 output all
+# Creates: output_high.mp4, output_medium.mp4, output_low.mp4
+
+# Generate only high quality profile
+./video_converter_abr input.mp4 output high
+# Creates: output_high.mp4
 ```
 
 ## Output Specifications
 
+### Standard Converter
 - **Video Codec**: H.264/x264
 - **Resolution**: 1920x1080 (Full HD)
-- **Frame Rate**: Preserved from source (default 25 fps)
+- **Frame Rate**: Preserved from source
 - **Bit Rate**: 4 Mbps
 - **Pixel Format**: YUV420P
 - **Audio Codec**: AAC
 - **Audio Bit Rate**: 128 kbps
+
+### ABR Profiles
+
+| Profile | Resolution | Video Bitrate | Audio Bitrate | H.264 Profile | H.264 Level |
+|---------|------------|---------------|---------------|---------------|-------------|
+| High    | 1920x1080  | 4.0 Mbps      | 128 kbps      | High          | 4.1         |
+| Medium  | 1280x720   | 2.5 Mbps      | 96 kbps       | Main          | 3.1         |
+| Low     | 854x480    | 1.2 Mbps      | 64 kbps       | Baseline      | 3.0         |
+
+All profiles use:
+- **Keyframe Interval**: 120 frames (2 seconds at 60fps)
+- **Audio Codec**: AAC (MPEG-4 AAC ADTS)
+- **Container**: MP4 with fragmented output for streaming
 
 ## Performance Optimization
 

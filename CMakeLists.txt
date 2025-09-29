@@ -21,13 +21,16 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
 # Find x264
 pkg_check_modules(X264 IMPORTED_TARGET libx264)
 
-# Add executable
+# Add executables
 add_executable(video_converter video_converter.cpp)
+add_executable(video_converter_abr video_converter_abr.cpp)
 
 # Include directories
 target_include_directories(video_converter PRIVATE ${LIBAV_INCLUDE_DIRS})
+target_include_directories(video_converter_abr PRIVATE ${LIBAV_INCLUDE_DIRS})
 if(X264_FOUND)
     target_include_directories(video_converter PRIVATE ${X264_INCLUDE_DIRS})
+    target_include_directories(video_converter_abr PRIVATE ${X264_INCLUDE_DIRS})
 endif()
 
 # Link libraries
@@ -37,8 +40,15 @@ target_link_libraries(video_converter
     pthread
 )
 
+target_link_libraries(video_converter_abr
+    PkgConfig::LIBAV
+    stdc++fs
+    pthread
+)
+
 if(X264_FOUND)
     target_link_libraries(video_converter PkgConfig::X264)
+    target_link_libraries(video_converter_abr PkgConfig::X264)
 endif()
 
 # Compiler flags for optimization
@@ -51,8 +61,17 @@ target_compile_options(video_converter PRIVATE
     -Wpedantic
 )
 
+target_compile_options(video_converter_abr PRIVATE 
+    -O3 
+    -march=native 
+    -mtune=native
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
 # Installation
-install(TARGETS video_converter
+install(TARGETS video_converter video_converter_abr
     RUNTIME DESTINATION bin
 )
 

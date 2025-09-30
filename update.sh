@@ -216,7 +216,31 @@ if [ -f "radiumvod.service" ]; then
         cp radiumvod.service /lib/systemd/system/
         systemctl daemon-reload
         print_info "Systemd service updated"
+    else
+        # Force update if service has old permissions
+        if ! grep -q "ReadWritePaths=/var/media /var/log/radiumvod.log /var/lib/radiumvod" /lib/systemd/system/radiumvod.service; then
+            print_info "Updating systemd service permissions..."
+            cp radiumvod.service /lib/systemd/system/
+            systemctl daemon-reload
+            print_info "Systemd service permissions updated"
+        fi
     fi
+fi
+
+# Fix directory permissions (in case they were changed)
+print_step "Verifying directory permissions..."
+if [ -d /var/media/source ]; then
+    chown -R radiumvod:radiumvod /var/media/source 2>/dev/null || true
+fi
+if [ -d /var/media/hls ]; then
+    chown -R radiumvod:radiumvod /var/media/hls 2>/dev/null || true
+fi
+if [ -d /var/lib/radiumvod ]; then
+    chown -R radiumvod:radiumvod /var/lib/radiumvod 2>/dev/null || true
+    chmod 700 /var/lib/radiumvod/.ssh 2>/dev/null || true
+fi
+if [ -f /var/log/radiumvod.log ]; then
+    chown radiumvod:radiumvod /var/log/radiumvod.log 2>/dev/null || true
 fi
 
 # Step 10: Cleanup

@@ -48,14 +48,30 @@ if(X264_FOUND)
 endif()
 
 # Compiler flags for optimization
-target_compile_options(radiumvod PRIVATE 
-    -O3 
-    -march=native 
-    -mtune=native
-    -Wall
-    -Wextra
-    -Wpedantic
-)
+if(APPLE)
+    # macOS specific flags
+    target_compile_options(radiumvod PRIVATE 
+        -O3 
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+    # Link macOS frameworks if needed
+    find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+    if(COREFOUNDATION_LIBRARY)
+        target_link_libraries(radiumvod ${COREFOUNDATION_LIBRARY})
+    endif()
+else()
+    # Linux specific flags
+    target_compile_options(radiumvod PRIVATE 
+        -O3 
+        -march=native 
+        -mtune=native
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+endif()
 
 # Installation
 install(TARGETS radiumvod

@@ -40,7 +40,7 @@
       
       <!-- Category: Use forward slash for hierarchy -->
       <!-- Examples: Videoshop/ომი, VODAll/ფავორიტი -->
-      <App_Data App="MOD" Name="Category" Value="Videoshop/კატეგორია" />
+      <App_Data App="MOD" Name="Category" Value="Videoshop/ომი" />
       
       <!-- Genre in different languages -->
       <App_Data App="MOD" Language="en" Name="Genre" Value="Drama" />

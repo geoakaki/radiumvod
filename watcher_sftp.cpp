@@ -372,7 +372,7 @@ private:
         xml << "Provider=\"000600\" Verb=\"\" Version_Major=\"1\" Version_Minor=\"0\" />\n";
         xml << "      <App_Data App=\"MOD\" Name=\"Type\" Value=\"title\" />\n";
         xml << "      <App_Data App=\"MOD\" Name=\"Year\" Value=\"2024\" />\n";
-        xml << "      <App_Data App=\"MOD\" Name=\"Category\" Value=\"VODAll/ფავორიტი\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Category\" Value=\"Videoshop/ომი\" />\n";
         xml << "      <App_Data App=\"MOD\" Language=\"en\" Name=\"Genre\" Value=\"General\" />\n";
         xml << "      <App_Data App=\"MOD\" Name=\"Licensing_Window_Start\" Value=\"" << current_date << "\"/>\n";
         xml << "      <App_Data App=\"MOD\" Name=\"Licensing_Window_End\" Value=\"" << end_date << "\" />\n";

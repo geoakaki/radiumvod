@@ -118,12 +118,12 @@ public:
         log_level = parseString(content, "log_level", "warning");
         
         // Parse SFTP settings
-        sftp_enabled = parseBool(content, "\"enabled\"", false);
-        sftp_host = parseString(content, "\"host\"");
-        sftp_port = parseInt(content, "\"port\"", 22);
-        sftp_username = parseString(content, "\"username\"");
-        sftp_password = parseString(content, "\"password\"");
-        sftp_remote_path = parseString(content, "\"remote_path\"");
+        sftp_enabled = parseBool(content, "enabled", false);
+        sftp_host = parseString(content, "host");
+        sftp_port = parseInt(content, "port", 22);
+        sftp_username = parseString(content, "username");
+        sftp_password = parseString(content, "password");
+        sftp_remote_path = parseString(content, "remote_path");
         sftp_delete_source_after_upload = parseBool(content, "delete_source_after_upload", false);
         sftp_delete_local_after_upload = parseBool(content, "delete_local_after_upload", false);
         sftp_retry_attempts = parseInt(content, "retry_attempts", 3);
@@ -419,9 +419,12 @@ public:
         log("HLS Watcher with SFTP started");
         log("Source: " + config.source_dir);
         log("Destination: " + config.dest_dir);
+        log("SFTP Enabled: " + std::string(config.sftp_enabled ? "YES" : "NO"));
         if (config.sftp_enabled) {
             log("SFTP: " + config.sftp_username + "@" + config.sftp_host + ":" + 
                 std::to_string(config.sftp_port) + config.sftp_remote_path);
+        } else {
+            log("SFTP is disabled in configuration");
         }
         log("Watching for: " + std::accumulate(config.file_extensions.begin(), 
             config.file_extensions.end(), std::string(),

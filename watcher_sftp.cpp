@@ -328,7 +328,13 @@ private:
             std::string batch_file = "/tmp/sftp_batch_" + std::to_string(std::time(nullptr)) + ".txt";
             std::ofstream batch(batch_file);
             
-            batch << "mkdir " << remote_name << "\n";
+            // Navigate to remote path first
+            if (!config.sftp_remote_path.empty() && config.sftp_remote_path != "/") {
+                batch << "cd " << config.sftp_remote_path << "\n";
+            }
+            
+            // Create directory for this upload
+            batch << "-mkdir " << remote_name << "\n";  // Use -mkdir to ignore error if exists
             batch << "cd " << remote_name << "\n";
             
             // Upload all files and directories
@@ -338,7 +344,7 @@ private:
                     fs::path remote_file_dir = rel_path.parent_path();
                     
                     if (!remote_file_dir.empty() && remote_file_dir != ".") {
-                        batch << "mkdir " << remote_file_dir.string() << "\n";
+                        batch << "-mkdir " << remote_file_dir.string() << "\n";
                     }
                     
                     batch << "put \"" << entry.path().string() << "\" \"" 
@@ -348,13 +354,12 @@ private:
             
             batch.close();
             
-            // Build SFTP command
+            // Build SFTP command (connect without path in URL)
             std::stringstream cmd;
             cmd << "sshpass -p '" << config.sftp_password << "' ";
             cmd << "sftp -oBatchMode=no -oStrictHostKeyChecking=no ";
             cmd << "-P " << config.sftp_port << " ";
-            cmd << config.sftp_username << "@" << config.sftp_host << ":" 
-                << config.sftp_remote_path << " ";
+            cmd << config.sftp_username << "@" << config.sftp_host << " ";
             cmd << "< " << batch_file << " 2>&1";
             
             log("SFTP upload attempt " + std::to_string(attempt) + "/" + 

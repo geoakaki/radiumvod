@@ -132,11 +132,13 @@ mkdir -p /var/media/source
 mkdir -p /var/media/hls
 mkdir -p /var/log
 mkdir -p /var/lib/radiumvod
+mkdir -p /var/lib/radiumvod/.ssh
 
 # Set permissions
 chown -R radiumvod:radiumvod /var/media/source
 chown -R radiumvod:radiumvod /var/media/hls
-chown radiumvod:radiumvod /var/lib/radiumvod
+chown -R radiumvod:radiumvod /var/lib/radiumvod
+chmod 700 /var/lib/radiumvod/.ssh
 touch /var/log/radiumvod.log
 chown radiumvod:radiumvod /var/log/radiumvod.log
 

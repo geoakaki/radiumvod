@@ -199,6 +199,16 @@ if [ -f "radiumvod.conf" ]; then
     fi
 fi
 
+# Ensure SSH directory exists for SFTP
+if [ -d /var/lib/radiumvod ]; then
+    if [ ! -d /var/lib/radiumvod/.ssh ]; then
+        print_info "Creating SSH directory for SFTP support..."
+        mkdir -p /var/lib/radiumvod/.ssh
+        chown -R radiumvod:radiumvod /var/lib/radiumvod
+        chmod 700 /var/lib/radiumvod/.ssh
+    fi
+fi
+
 # Step 9: Update systemd service if changed
 if [ -f "radiumvod.service" ]; then
     if ! diff -q radiumvod.service /lib/systemd/system/radiumvod.service > /dev/null 2>&1; then

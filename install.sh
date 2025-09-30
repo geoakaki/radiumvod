@@ -59,7 +59,8 @@ if [ -f /etc/debian_version ]; then
         libswresample-dev \
         libavfilter-dev \
         libx264-dev \
-        ffmpeg
+        ffmpeg \
+        sshpass
         
 elif [ -f /etc/redhat-release ]; then
     # RHEL/CentOS/Fedora
@@ -70,7 +71,8 @@ elif [ -f /etc/redhat-release ]; then
         pkgconfig \
         ffmpeg-devel \
         x264-devel \
-        ffmpeg
+        ffmpeg \
+        sshpass
         
 elif [ -f /etc/arch-release ]; then
     # Arch Linux
@@ -79,7 +81,8 @@ elif [ -f /etc/arch-release ]; then
         base-devel \
         cmake \
         ffmpeg \
-        x264
+        x264 \
+        sshpass
 else
     print_warning "Unknown distribution. Please install dependencies manually:"
     echo "  - cmake"

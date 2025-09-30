@@ -318,8 +318,9 @@ private:
         
         // Check if sshpass is installed
         if (system("which sshpass > /dev/null 2>&1") != 0) {
-            log("Installing sshpass for SFTP authentication...");
-            system("sudo apt-get update && sudo apt-get install -y sshpass");
+            log("ERROR: sshpass is not installed. Please install it manually:");
+            log("  sudo apt-get install sshpass");
+            return false;
         }
         
         for (int attempt = 1; attempt <= config.sftp_retry_attempts; attempt++) {

@@ -134,9 +134,9 @@
       </Metadata>
       
       <!-- Content File Reference -->
-      <!-- For HLS: index.m3u8 or playlist.m3u8 -->
-      <!-- For TS: filename.ts -->
-      <Content Value="index.m3u8" />
+      <!-- Path format: {basename}/playlist.m3u8 for HLS -->
+      <!-- For TS: {basename}/filename.ts -->
+      <Content Value="BASENAME/playlist.m3u8" />
     </Asset>
     
     <!-- Poster/Thumbnail Asset (Optional but recommended) -->
@@ -159,8 +159,9 @@
       </Metadata>
       
       <!-- Poster File Reference -->
+      <!-- Path format: {basename}/{basename}-poster1.jpg -->
       <!-- Supported formats: .jpg, .png, .gif -->
-      <Content Value="poster.jpg" />
+      <Content Value="BASENAME/BASENAME-poster1.jpg" />
     </Asset>
   </Asset>
 </ADI>

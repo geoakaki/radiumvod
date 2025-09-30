@@ -410,7 +410,7 @@ private:
         xml << "        <App_Data App=\"MOD\" Name=\"Video_Codec_Type\" Value=\"2\" />\n";
         xml << "        <App_Data App=\"MOD\" Name=\"Audio_Codec_Type\" Value=\"AAC\" />\n";
         xml << "      </Metadata>\n";
-        xml << "      <Content Value=\"playlist.m3u8\" />\n";
+        xml << "      <Content Value=\"" << basename << "/playlist.m3u8\" />\n";
         xml << "    </Asset>\n";
         xml << "    <Asset>\n";
         xml << "      <Metadata>\n";
@@ -421,7 +421,7 @@ private:
         xml << "Provider=\"000600\" Verb=\"\" Version_Major=\"1\" Version_Minor=\"0\" />\n";
         xml << "        <App_Data App=\"MOD\" Name=\"Type\" Value=\"poster\" />\n";
         xml << "      </Metadata>\n";
-        xml << "      <Content Value=\"" << basename << "-poster1.jpg\" />\n";
+        xml << "      <Content Value=\"" << basename << "/" << basename << "-poster1.jpg\" />\n";
         xml << "    </Asset>\n";
         xml << "  </Asset>\n";
         xml << "</ADI>\n";
@@ -531,13 +531,25 @@ private:
                 batch << "cd " << config.sftp_remote_path << "\n";
             }
             
-            // Create directory for this upload
+            // Upload XML file to root of remote_path
+            fs::path xml_file = local_dir / ("vod-" + remote_name + ".xml");
+            if (fs::exists(xml_file)) {
+                batch << "put \"" << xml_file.string() << "\" \"vod-" << remote_name << ".xml\"\n";
+            }
+            
+            // Create directory for media files
             batch << "-mkdir " << remote_name << "\n";  // Use -mkdir to ignore error if exists
             batch << "cd " << remote_name << "\n";
             
-            // Upload all files and directories
+            // Upload all files and directories except XML
             for (const auto& entry : fs::recursive_directory_iterator(local_dir)) {
                 if (fs::is_regular_file(entry)) {
+                    std::string filename = entry.path().filename().string();
+                    // Skip the XML file as it's already uploaded to root
+                    if (filename.find("vod-") == 0 && filename.find(".xml") != std::string::npos) {
+                        continue;
+                    }
+                    
                     fs::path rel_path = fs::relative(entry.path(), local_dir);
                     fs::path remote_file_dir = rel_path.parent_path();
                     

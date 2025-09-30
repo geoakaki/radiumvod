@@ -1,3 +1,4 @@
+#include "converter_abr.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -659,29 +660,7 @@ private:
     }
 };
 
-void printUsage(const char* program) {
-    std::cout << "Usage: " << program << " <input_file> <output_base> <profile>\n";
-    std::cout << "\nConverts video to x264 with ABR profiles\n";
-    std::cout << "\nProfiles:\n";
-    std::cout << "  high   - 1920x1080 @ 4Mbps video, 128kbps audio (H.264 High Profile)\n";
-    std::cout << "  medium - 1280x720  @ 2.5Mbps video, 96kbps audio (H.264 Main Profile)\n";
-    std::cout << "  low    - 854x480   @ 1.2Mbps video, 64kbps audio (H.264 Baseline Profile)\n";
-    std::cout << "  all    - Generate all three profiles\n";
-    std::cout << "\nExample:\n";
-    std::cout << "  " << program << " input.mp4 output all\n";
-    std::cout << "  Creates: output_high.mp4, output_medium.mp4, output_low.mp4\n";
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 4) {
-        printUsage(argv[0]);
-        return 1;
-    }
-    
-    std::string input_file = argv[1];
-    std::string output_base = argv[2];
-    std::string profile = argv[3];
-    
+int convert_abr(const std::string& input_file, const std::string& output_base, const std::string& profile) {
     // Check if input file exists
     if (!fs::exists(input_file)) {
         std::cerr << "Error: Input file does not exist: " << input_file << "\n";

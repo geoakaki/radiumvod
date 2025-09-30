@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(VideoConverter VERSION 1.0.0)
+project(RadiumVOD VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,94 +21,34 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
 # Find x264
 pkg_check_modules(X264 IMPORTED_TARGET libx264)
 
-# Add executables
-add_executable(video_converter video_converter.cpp)
-add_executable(video_converter_abr video_converter_abr.cpp)
-add_executable(video_converter_hls video_converter_hls.cpp)
-add_executable(hls_watcher hls_watcher.cpp)
-add_executable(hls_watcher_sftp hls_watcher_sftp.cpp)
+# Main executable with all converters
+add_executable(radiumvod 
+    radiumvod.cpp
+    converter_standard.cpp
+    converter_abr.cpp
+    converter_hls.cpp
+    watcher_sftp.cpp
+)
 
 # Include directories
-target_include_directories(video_converter PRIVATE ${LIBAV_INCLUDE_DIRS})
-target_include_directories(video_converter_abr PRIVATE ${LIBAV_INCLUDE_DIRS})
+target_include_directories(radiumvod PRIVATE ${LIBAV_INCLUDE_DIRS})
 if(X264_FOUND)
-    target_include_directories(video_converter PRIVATE ${X264_INCLUDE_DIRS})
-    target_include_directories(video_converter_abr PRIVATE ${X264_INCLUDE_DIRS})
+    target_include_directories(radiumvod PRIVATE ${X264_INCLUDE_DIRS})
 endif()
 
 # Link libraries
-target_link_libraries(video_converter
+target_link_libraries(radiumvod
     PkgConfig::LIBAV
-    stdc++fs
-    pthread
-)
-
-target_link_libraries(video_converter_abr
-    PkgConfig::LIBAV
-    stdc++fs
-    pthread
-)
-
-# Link libraries for HLS converter (simpler, uses FFmpeg CLI)
-target_link_libraries(video_converter_hls
-    stdc++fs
-)
-
-# Link libraries for HLS watcher
-target_link_libraries(hls_watcher
-    stdc++fs
-    pthread
-)
-
-# Link libraries for HLS watcher with SFTP
-target_link_libraries(hls_watcher_sftp
     stdc++fs
     pthread
 )
 
 if(X264_FOUND)
-    target_link_libraries(video_converter PkgConfig::X264)
-    target_link_libraries(video_converter_abr PkgConfig::X264)
+    target_link_libraries(radiumvod PkgConfig::X264)
 endif()
 
 # Compiler flags for optimization
-target_compile_options(video_converter PRIVATE 
-    -O3 
-    -march=native 
-    -mtune=native
-    -Wall
-    -Wextra
-    -Wpedantic
-)
-
-target_compile_options(video_converter_abr PRIVATE 
-    -O3 
-    -march=native 
-    -mtune=native
-    -Wall
-    -Wextra
-    -Wpedantic
-)
-
-target_compile_options(video_converter_hls PRIVATE 
-    -O3 
-    -march=native 
-    -mtune=native
-    -Wall
-    -Wextra
-    -Wpedantic
-)
-
-target_compile_options(hls_watcher PRIVATE 
-    -O3 
-    -march=native 
-    -mtune=native
-    -Wall
-    -Wextra
-    -Wpedantic
-)
-
-target_compile_options(hls_watcher_sftp PRIVATE 
+target_compile_options(radiumvod PRIVATE 
     -O3 
     -march=native 
     -mtune=native
@@ -118,19 +58,24 @@ target_compile_options(hls_watcher_sftp PRIVATE
 )
 
 # Installation
-install(TARGETS video_converter video_converter_abr video_converter_hls hls_watcher hls_watcher_sftp
+install(TARGETS radiumvod
     RUNTIME DESTINATION bin
 )
 
 # Install config file
-install(FILES config.json
-    DESTINATION etc/hls_watcher
-    RENAME config.json.example
+install(FILES radiumvod.conf
+    DESTINATION /etc/radiumvod
+    RENAME radiumvod.conf
+)
+
+# Install systemd service
+install(FILES radiumvod.service
+    DESTINATION /lib/systemd/system
 )
 
 # Print configuration summary
 message(STATUS "================================================")
-message(STATUS "Video Converter Build Configuration:")
+message(STATUS "RadiumVOD Build Configuration:")
 message(STATUS "================================================")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")

@@ -1,28 +1,244 @@
-# Video Converter - x264 with ABR Support
+# RadiumVOD - Video On Demand Converter and Streaming Service
 
-A high-performance C++ video converter that converts any video format to x264-encoded MP4 files with support for Adaptive Bitrate (ABR) streaming profiles.
+A high-performance video processing system that converts videos to H.264/H.265 formats and HLS streaming with automatic directory monitoring and SFTP upload capabilities.
 
 ## Features
 
-- **Standard Converter**: Single Full HD output (1920x1080)
-- **ABR Converter**: Multiple quality profiles for adaptive streaming
-- **HLS Converter**: HTTP Live Streaming with m3u8 playlists
-- **HLS Watcher**: Automatic directory monitoring and conversion
-- Converts any video format supported by FFmpeg to x264
-- Automatic resolution scaling
-- Preserves audio tracks (AAC encoding)
-- Optimized for quality and performance
-- Multi-threaded processing
-- Cross-format compatibility
-- Configurable source/destination directories
-- JSON configuration support
+- **Multiple Output Formats**
+  - H.264 encoding with ABR (Adaptive Bitrate) profiles
+  - HLS (HTTP Live Streaming) with multiple quality levels
+  - H.265 encoding (coming soon)
 
-## Prerequisites
+- **Quality Profiles**
+  - High: 1920x1080 @ 4Mbps
+  - Medium: 1280x720 @ 2.5Mbps  
+  - Low: 854x480 @ 1.2Mbps
+  - All: Generate all profiles simultaneously
 
-### Ubuntu/Debian
+- **Daemon Mode**
+  - Automatic directory monitoring
+  - File stability checking
+  - Batch processing
+  - SFTP upload with retry mechanism
+  - Systemd integration
 
-Install required dependencies:
+- **Professional CLI**
+  - Modern command-line interface
+  - Verbose logging options
+  - Configuration file support
 
+## Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/geoakaki/radiumvod.git
+cd radiumvod
+
+# Run the installation script (requires sudo)
+sudo ./install.sh
+```
+
+The installation script will:
+- Install required dependencies
+- Build the binary
+- Create system user and directories
+- Install systemd service
+- Configure the system
+
+### Basic Usage
+
+#### Convert a single video
+```bash
+# Convert to H.264
+radiumvod convert -i input.mp4 -o output.mp4 -f h264 -p high
+
+# Convert with all ABR profiles
+radiumvod convert -i input.mp4 -o output -f h264 -p all
+
+# Convert to HLS streaming format
+radiumvod convert -i input.mp4 -o output_hls -f hls
+```
+
+#### Run as system service
+```bash
+# Start the daemon
+sudo systemctl start radiumvod
+
+# Enable auto-start on boot
+sudo systemctl enable radiumvod
+
+# Check status
+sudo systemctl status radiumvod
+
+# View logs
+sudo journalctl -u radiumvod -f
+```
+
+## Command Reference
+
+### Convert Command
+
+```bash
+radiumvod convert [options]
+```
+
+**Options:**
+- `-i, --input <file>` - Input video file (required)
+- `-o, --output <file>` - Output file/directory (required)
+- `-f, --format <format>` - Output format: `h264`, `h265`, `hls` (default: h264)
+- `-p, --profile <profile>` - Quality profile: `high`, `medium`, `low`, `all` (default: high)
+- `-v, --verbose` - Enable verbose output
+
+**Examples:**
+```bash
+# H.264 high quality
+radiumvod convert -i movie.mp4 -o movie_hd.mp4 -f h264 -p high
+
+# All ABR profiles
+radiumvod convert -i movie.mp4 -o movie -f h264 -p all
+# Creates: movie_high.mp4, movie_medium.mp4, movie_low.mp4
+
+# HLS streaming
+radiumvod convert -i movie.mp4 -o movie_hls -f hls
+# Creates HLS directory with playlist.m3u8 and segments
+```
+
+### Daemon Command
+
+```bash
+radiumvod daemon [options]
+```
+
+**Options:**
+- `-c, --config <file>` - Configuration file (default: `/etc/radiumvod/radiumvod.conf`)
+
+**Example:**
+```bash
+radiumvod daemon -c /etc/radiumvod/radiumvod.conf
+```
+
+## Configuration
+
+The daemon mode uses a JSON configuration file located at `/etc/radiumvod/radiumvod.conf`:
+
+```json
+{
+  "watcher": {
+    "source_directory": "/var/media/source",
+    "destination_directory": "/var/media/hls",
+    "watch_interval_seconds": 5,
+    "file_extensions": [".mp4", ".avi", ".mkv", ".mov"],
+    "delete_source_after_conversion": false,
+    "log_file": "/var/log/radiumvod.log"
+  },
+  
+  "hls": {
+    "segment_duration": 10,
+    "profiles": [
+      {
+        "name": "720p",
+        "width": 1280,
+        "height": 720,
+        "video_bitrate": 3200000,
+        "audio_bitrate": 128000,
+        "bandwidth": 3500000,
+        "folder_name": "stream_3500"
+      }
+    ]
+  },
+  
+  "sftp": {
+    "enabled": false,
+    "host": "your_server.com",
+    "port": 22,
+    "username": "your_username",
+    "password": "your_password",
+    "remote_path": "/path/to/remote/VOD",
+    "delete_source_after_upload": false,
+    "retry_attempts": 3
+  }
+}
+```
+
+## Output Specifications
+
+### H.264 ABR Profiles
+
+| Profile | Resolution | Video Bitrate | Audio Bitrate | H.264 Profile | H.264 Level |
+|---------|------------|---------------|---------------|---------------|-------------|
+| High    | 1920x1080  | 4.0 Mbps      | 128 kbps      | High          | 4.1         |
+| Medium  | 1280x720   | 2.5 Mbps      | 96 kbps       | Main          | 3.1         |
+| Low     | 854x480    | 1.2 Mbps      | 64 kbps       | Baseline      | 3.0         |
+
+### HLS Streaming Profiles
+
+| Profile | Resolution | Video Bitrate | Audio Bitrate | Bandwidth | Folder |
+|---------|------------|---------------|---------------|-----------|--------|
+| 720p    | 1280x720   | 3.2 Mbps      | 128 kbps      | 3.5 Mbps  | stream_3500 |
+| 432p    | 768x432    | 1.3 Mbps      | 96 kbps       | 1.5 Mbps  | stream_1500 |
+| 288p    | 512x288    | 400 kbps      | 64 kbps       | 500 kbps  | stream_500 |
+
+## System Integration
+
+### Directory Structure
+
+```
+/usr/bin/radiumvod              # Main executable
+/etc/radiumvod/radiumvod.conf   # Configuration file
+/var/media/source/               # Watch directory for new videos
+/var/media/hls/                  # Output directory for converted files
+/var/log/radiumvod.log          # Log file
+```
+
+### Systemd Service
+
+The service runs as a system daemon with automatic restart on failure:
+
+```bash
+# Service management
+sudo systemctl start radiumvod     # Start service
+sudo systemctl stop radiumvod      # Stop service
+sudo systemctl restart radiumvod   # Restart service
+sudo systemctl status radiumvod    # Check status
+sudo systemctl enable radiumvod    # Enable on boot
+sudo systemctl disable radiumvod   # Disable on boot
+
+# View logs
+sudo journalctl -u radiumvod -f    # Follow logs
+sudo journalctl -u radiumvod -n 50 # Last 50 lines
+```
+
+## Workflow Example
+
+### Automatic Processing with SFTP Upload
+
+1. Configure SFTP settings in `/etc/radiumvod/radiumvod.conf`
+2. Start the daemon service
+3. Copy video files to `/var/media/source/`
+4. RadiumVOD automatically:
+   - Detects new files
+   - Converts to HLS format
+   - Uploads to SFTP server
+   - Optionally deletes source files
+
+### Manual Batch Processing
+
+```bash
+#!/bin/bash
+# Convert all videos in a directory
+for video in /path/to/videos/*.mp4; do
+    filename=$(basename "$video" .mp4)
+    radiumvod convert -i "$video" -o "/output/$filename" -f hls
+done
+```
+
+## Building from Source
+
+### Prerequisites
+
+#### Ubuntu/Debian
 ```bash
 sudo apt-get update
 sudo apt-get install -y \
@@ -33,23 +249,24 @@ sudo apt-get install -y \
     libavcodec-dev \
     libavutil-dev \
     libswscale-dev \
+    libswresample-dev \
     libavfilter-dev \
-    libx264-dev
+    libx264-dev \
+    ffmpeg
 ```
 
-### Fedora/RHEL/CentOS
-
+#### Fedora/RHEL/CentOS
 ```bash
 sudo dnf install -y \
     gcc-c++ \
     cmake \
     pkgconfig \
     ffmpeg-devel \
-    x264-devel
+    x264-devel \
+    ffmpeg
 ```
 
-### Arch Linux
-
+#### Arch Linux
 ```bash
 sudo pacman -S \
     base-devel \
@@ -58,283 +275,90 @@ sudo pacman -S \
     x264
 ```
 
-## Building
+### Manual Build
 
-1. Clone or download the source code:
 ```bash
-git clone <repository>
-cd ott-transcode
-```
+# Create build directory
+mkdir build && cd build
 
-2. Run the build script:
-```bash
-./build.sh
-```
-
-Or build manually:
-```bash
-mkdir build
-cd build
+# Configure
 cmake .. -DCMAKE_BUILD_TYPE=Release
+
+# Build
 make -j$(nproc)
+
+# Install (optional)
+sudo make install
 ```
 
-## Usage
+## Uninstallation
 
-### Standard Converter (Single Full HD Output)
+To completely remove RadiumVOD from your system:
 
 ```bash
-./video_converter <input_file> <output_file>
+sudo radiumvod-uninstall
 ```
 
-Example:
-```bash
-./video_converter movie.avi movie.mp4
-```
+This will remove:
+- Binary from `/usr/bin/`
+- Configuration from `/etc/radiumvod/`
+- Systemd service file
+- System user (optional)
 
-### ABR Converter (Multiple Quality Profiles)
-
-```bash
-./video_converter_abr <input_file> <output_base> <profile>
-```
-
-Available profiles:
-- `high` - 1920x1080 @ 4Mbps video, 128kbps audio (H.264 High Profile)
-- `medium` - 1280x720 @ 2.5Mbps video, 96kbps audio (H.264 Main Profile)  
-- `low` - 854x480 @ 1.2Mbps video, 64kbps audio (H.264 Baseline Profile)
-- `all` - Generate all three profiles
-
-Examples:
-```bash
-# Generate all ABR profiles
-./video_converter_abr input.mp4 output all
-# Creates: output_high.mp4, output_medium.mp4, output_low.mp4
-
-# Generate only high quality profile
-./video_converter_abr input.mp4 output high
-# Creates: output_high.mp4
-```
-
-### HLS Converter (HTTP Live Streaming)
-
-```bash
-./video_converter_hls <input_file> <output_directory>
-```
-
-Creates HLS streaming structure with master playlist and three quality variants:
-- `stream_3500` - 1280x720 @ 3.5Mbps bandwidth
-- `stream_1500` - 768x432 @ 1.5Mbps bandwidth
-- `stream_500` - 512x288 @ 500kbps bandwidth
-
-Example:
-```bash
-./video_converter_hls input.mp4 output_hls
-```
-
-Creates directory structure:
-```
-output_hls/
-├── playlist.m3u8           # Master playlist
-├── stream_3500/
-│   ├── index.m3u8         # 720p variant playlist
-│   └── segment_*.ts       # Video segments
-├── stream_1500/
-│   ├── index.m3u8         # 432p variant playlist
-│   └── segment_*.ts
-└── stream_500/
-    ├── index.m3u8         # 288p variant playlist
-    └── segment_*.ts
-```
-
-### HLS Watcher (Automatic Conversion Service)
-
-```bash
-./hls_watcher [config_file]
-```
-
-Monitors a source directory for new video files and automatically converts them to HLS format.
-
-#### Configuration File
-
-Create a `config.json` file:
-
-```json
-{
-  "watcher": {
-    "source_directory": "/var/media/source",
-    "destination_directory": "/var/media/hls",
-    "watch_interval_seconds": 5,
-    "file_extensions": [".mp4", ".avi", ".mkv", ".mov"],
-    "delete_source_after_conversion": false,
-    "log_file": "/var/log/hls_watcher.log"
-  },
-  "hls": {
-    "segment_duration": 10,
-    "profiles": [...]
-  }
-}
-```
-
-#### Usage Example
-
-```bash
-# Start the watcher service
-./hls_watcher config.json
-
-# Or run as a system service
-nohup ./hls_watcher /etc/hls_watcher/config.json &
-
-# The watcher will:
-# 1. Monitor the source directory
-# 2. Detect new video files
-# 3. Automatically convert to HLS
-# 4. Save to destination directory
-```
-
-#### Features
-
-- **Automatic Detection**: Monitors for new files every N seconds
-- **File Stability Check**: Ensures files are fully written before processing
-- **Configurable Profiles**: Define custom quality profiles in JSON
-- **Logging**: Comprehensive logging to file or console
-- **Graceful Shutdown**: Handles SIGINT/SIGTERM signals
-- **Prevent Reprocessing**: Tracks already converted files
-
-### HLS Watcher with SFTP Upload
-
-Enhanced version with automatic SFTP upload capabilities:
-
-```bash
-./hls_watcher_sftp config.json
-```
-
-#### SFTP Configuration
-
-Add SFTP settings to your config.json:
-
-```json
-{
-  "sftp": {
-    "enabled": true,
-    "host": "your_server.com",
-    "port": 20022,
-    "username": "vmportalftp",
-    "password": "HMtv172!100",
-    "remote_path": "/home/vsp/vmportalftp/VOD",
-    "delete_source_after_upload": true,
-    "delete_local_after_upload": false,
-    "retry_attempts": 3,
-    "retry_delay_seconds": 5
-  }
-}
-```
-
-#### SFTP Features
-
-- **Automatic Upload**: Uploads converted HLS files to SFTP server
-- **Retry Mechanism**: Configurable retry attempts with delay
-- **Source Management**: Option to delete source file after successful upload
-- **Local Cleanup**: Option to delete local HLS files after upload
-- **Batch Upload**: Efficiently uploads entire directory structure
-- **Password Authentication**: Uses sshpass for automated authentication
-
-#### Workflow
-
-1. Monitor source directory for new files
-2. Convert video to HLS format locally
-3. Upload HLS directory to SFTP server
-4. Delete source file if upload successful (optional)
-5. Delete local HLS files after upload (optional)
-
-#### Requirements
-
-- `sshpass` for SFTP authentication (auto-installed if missing)
-- Network access to SFTP server
-- Valid SFTP credentials
-
-## Output Specifications
-
-### Standard Converter
-- **Video Codec**: H.264/x264
-- **Resolution**: 1920x1080 (Full HD)
-- **Frame Rate**: Preserved from source
-- **Bit Rate**: 4 Mbps
-- **Pixel Format**: YUV420P
-- **Audio Codec**: AAC
-- **Audio Bit Rate**: 128 kbps
-
-### ABR Profiles
-
-| Profile | Resolution | Video Bitrate | Audio Bitrate | H.264 Profile | H.264 Level |
-|---------|------------|---------------|---------------|---------------|-------------|
-| High    | 1920x1080  | 4.0 Mbps      | 128 kbps      | High          | 4.1         |
-| Medium  | 1280x720   | 2.5 Mbps      | 96 kbps       | Main          | 3.1         |
-| Low     | 854x480    | 1.2 Mbps      | 64 kbps       | Baseline      | 3.0         |
-
-All profiles use:
-- **Keyframe Interval**: 120 frames (2 seconds at 60fps)
-- **Audio Codec**: AAC (MPEG-4 AAC ADTS)
-- **Container**: MP4 with fragmented output for streaming
-
-### HLS Streaming Profiles
-
-| Profile | Resolution | Video Bitrate | Audio Bitrate | Bandwidth | Folder |
-|---------|------------|---------------|---------------|-----------|--------|
-| 720p    | 1280x720   | 3.2 Mbps      | 128 kbps      | 3.5 Mbps  | stream_3500 |
-| 432p    | 768x432    | 1.3 Mbps      | 96 kbps       | 1.5 Mbps  | stream_1500 |
-| 288p    | 512x288    | 400 kbps      | 64 kbps       | 500 kbps  | stream_500 |
-
-HLS features:
-- **Segment Duration**: 10 seconds per segment
-- **Playlist Format**: HLS v3 compatible
-- **Master Playlist**: playlist.m3u8 with bandwidth ladder
-- **Codec**: H.264 High Profile + AAC audio
+Note: Media directories in `/var/media/` are preserved.
 
 ## Performance Optimization
 
-The converter uses:
-- Hardware-accelerated scaling (when available)
-- Multi-threaded encoding
-- Optimized x264 presets
-- Native CPU instructions (-march=native)
-
-## Advanced Settings
-
-The converter uses the following x264 settings:
-- **Preset**: medium (balanced speed/quality)
-- **Tune**: film (optimized for movie content)
-- **CRF**: 23 (visually lossless quality)
+RadiumVOD is optimized for performance:
+- Multi-threaded encoding (uses all CPU cores)
+- Hardware acceleration support (when available)
+- Native CPU instruction optimization (`-march=native`)
+- Efficient memory usage with streaming processing
 
 ## Troubleshooting
 
-### Missing Libraries
-
-If you encounter "library not found" errors, ensure all dependencies are installed:
+### Service won't start
 ```bash
-pkg-config --list-all | grep -E "libav|x264"
+# Check service status
+sudo systemctl status radiumvod
+
+# Check configuration file
+sudo radiumvod daemon -c /etc/radiumvod/radiumvod.conf
+
+# Check permissions
+ls -la /var/media/source /var/media/hls
 ```
 
-### Permission Denied
-
-Make the build script executable:
+### Conversion fails
 ```bash
-chmod +x build.sh
+# Test with verbose mode
+radiumvod convert -i input.mp4 -o output.mp4 -v
+
+# Check FFmpeg installation
+ffmpeg -version
+
+# Check available codecs
+ffmpeg -codecs | grep h264
 ```
 
-### Build Errors
-
-Clean the build directory and try again:
+### SFTP upload issues
 ```bash
-rm -rf build
-./build.sh
+# Test SFTP connection manually
+sftp -P 22 user@server
+
+# Check sshpass installation
+which sshpass || sudo apt-get install sshpass
+
+# Review logs
+sudo journalctl -u radiumvod | grep SFTP
 ```
 
-## System Requirements
+## Security Considerations
 
-- **OS**: Linux x64 (Ubuntu 18.04+, Debian 10+, Fedora 30+, etc.)
-- **RAM**: Minimum 2GB (4GB+ recommended)
-- **CPU**: x64 processor with SSE2 support
-- **Disk**: Sufficient space for input and output files
+- The service runs as a dedicated system user `radiumvod`
+- Limited file system access through systemd security settings
+- SFTP passwords should be properly secured in configuration
+- Consider using SSH keys instead of passwords for SFTP
 
 ## License
 
@@ -342,6 +366,13 @@ This software uses FFmpeg libraries and x264 encoder. Please ensure compliance w
 
 ## Support
 
-For issues or questions, please check the build output for specific error messages and ensure all dependencies are correctly installed.
+For issues or questions:
+- Check the logs: `sudo journalctl -u radiumvod -f`
+- Review configuration: `sudo nano /etc/radiumvod/radiumvod.conf`
+- GitHub Issues: https://github.com/geoakaki/radiumvod/issues
+
+## Version
+
+Current version: 1.0.0
 
 Created with assistance

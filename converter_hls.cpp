@@ -1,3 +1,4 @@
+#include "converter_hls.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -228,37 +229,7 @@ private:
     }
 };
 
-void printUsage(const char* program) {
-    std::cout << "Usage: " << program << " <input_file> <output_directory>\n";
-    std::cout << "\nConverts video to HLS format with adaptive bitrate streaming\n";
-    std::cout << "\nCreates three quality profiles:\n";
-    std::cout << "  - 1280x720 @ 3.5Mbps (stream_3500)\n";
-    std::cout << "  - 768x432 @ 1.5Mbps (stream_1500)\n";
-    std::cout << "  - 512x288 @ 500kbps (stream_500)\n";
-    std::cout << "\nOutput structure:\n";
-    std::cout << "  output_dir/\n";
-    std::cout << "    ├── playlist.m3u8           (master playlist)\n";
-    std::cout << "    ├── stream_3500/\n";
-    std::cout << "    │   ├── index.m3u8          (variant playlist)\n";
-    std::cout << "    │   └── segment_*.ts        (video segments)\n";
-    std::cout << "    ├── stream_1500/\n";
-    std::cout << "    │   ├── index.m3u8\n";
-    std::cout << "    │   └── segment_*.ts\n";
-    std::cout << "    └── stream_500/\n";
-    std::cout << "        ├── index.m3u8\n";
-    std::cout << "        └── segment_*.ts\n";
-    std::cout << "\nExample:\n";
-    std::cout << "  " << program << " input.mp4 output_hls\n";
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        printUsage(argv[0]);
-        return 1;
-    }
-    
-    std::string input_file = argv[1];
-    std::string output_dir = argv[2];
+int convert_hls(const std::string& input_file, const std::string& output_dir) {
     
     // Check if input file exists
     if (!fs::exists(input_file)) {

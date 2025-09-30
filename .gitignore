@@ -53,6 +53,10 @@ _deps/
 *.idb
 *.pdb
 
+# Configuration files with sensitive data
+config.json
+!config.json.example
+
 # Test videos (optional - uncomment if needed)
 # *.mp4
 # *.avi

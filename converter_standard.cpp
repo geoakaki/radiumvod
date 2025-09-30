@@ -1,3 +1,4 @@
+#include "converter_standard.h"
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -594,37 +595,23 @@ private:
     }
 };
 
-void printUsage(const char* program) {
-    std::cout << "Usage: " << program << " <input_file> <output_file>\n";
-    std::cout << "Converts any video format to x264 Full HD (1920x1080)\n";
-    std::cout << "\nExample:\n";
-    std::cout << "  " << program << " input.avi output.mp4\n";
-}
-
-int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        printUsage(argv[0]);
-        return 1;
-    }
-    
-    std::string input_file = argv[1];
-    std::string output_file = argv[2];
-    
+int convert_standard(const std::string& input_file, const std::string& output_file) {
     // Check if input file exists
     if (!fs::exists(input_file)) {
         std::cerr << "Error: Input file does not exist: " << input_file << "\n";
         return 1;
     }
     
+    std::string output = output_file;
     // Add .mp4 extension if no extension provided
-    if (output_file.find('.') == std::string::npos) {
-        output_file += ".mp4";
+    if (output.find('.') == std::string::npos) {
+        output += ".mp4";
     }
     
-    std::cout << "Converting: " << input_file << " -> " << output_file << "\n";
+    std::cout << "Converting: " << input_file << " -> " << output << "\n";
     std::cout << "Output: x264 Full HD (1920x1080)\n";
     
-    VideoConverter converter(input_file, output_file);
+    VideoConverter converter(input_file, output);
     
     if (converter.convert()) {
         std::cout << "Conversion successful!\n";

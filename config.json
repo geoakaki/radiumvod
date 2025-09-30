@@ -48,5 +48,18 @@
     "h264_level": "4.1",
     "threads": 0,
     "log_level": "warning"
+  },
+  
+  "sftp": {
+    "enabled": true,
+    "host": "server_address",
+    "port": 20022,
+    "username": "vmportalftp",
+    "password": "HMtv172!100",
+    "remote_path": "/home/vsp/vmportalftp/VOD",
+    "delete_source_after_upload": true,
+    "delete_local_after_upload": false,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 5
   }
 }

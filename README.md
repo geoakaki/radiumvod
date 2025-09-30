@@ -200,6 +200,58 @@ nohup ./hls_watcher /etc/hls_watcher/config.json &
 - **Graceful Shutdown**: Handles SIGINT/SIGTERM signals
 - **Prevent Reprocessing**: Tracks already converted files
 
+### HLS Watcher with SFTP Upload
+
+Enhanced version with automatic SFTP upload capabilities:
+
+```bash
+./hls_watcher_sftp config.json
+```
+
+#### SFTP Configuration
+
+Add SFTP settings to your config.json:
+
+```json
+{
+  "sftp": {
+    "enabled": true,
+    "host": "your_server.com",
+    "port": 20022,
+    "username": "vmportalftp",
+    "password": "HMtv172!100",
+    "remote_path": "/home/vsp/vmportalftp/VOD",
+    "delete_source_after_upload": true,
+    "delete_local_after_upload": false,
+    "retry_attempts": 3,
+    "retry_delay_seconds": 5
+  }
+}
+```
+
+#### SFTP Features
+
+- **Automatic Upload**: Uploads converted HLS files to SFTP server
+- **Retry Mechanism**: Configurable retry attempts with delay
+- **Source Management**: Option to delete source file after successful upload
+- **Local Cleanup**: Option to delete local HLS files after upload
+- **Batch Upload**: Efficiently uploads entire directory structure
+- **Password Authentication**: Uses sshpass for automated authentication
+
+#### Workflow
+
+1. Monitor source directory for new files
+2. Convert video to HLS format locally
+3. Upload HLS directory to SFTP server
+4. Delete source file if upload successful (optional)
+5. Delete local HLS files after upload (optional)
+
+#### Requirements
+
+- `sshpass` for SFTP authentication (auto-installed if missing)
+- Network access to SFTP server
+- Valid SFTP credentials
+
 ## Output Specifications
 
 ### Standard Converter

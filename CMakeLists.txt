@@ -26,6 +26,7 @@ add_executable(video_converter video_converter.cpp)
 add_executable(video_converter_abr video_converter_abr.cpp)
 add_executable(video_converter_hls video_converter_hls.cpp)
 add_executable(hls_watcher hls_watcher.cpp)
+add_executable(hls_watcher_sftp hls_watcher_sftp.cpp)
 
 # Include directories
 target_include_directories(video_converter PRIVATE ${LIBAV_INCLUDE_DIRS})
@@ -55,6 +56,12 @@ target_link_libraries(video_converter_hls
 
 # Link libraries for HLS watcher
 target_link_libraries(hls_watcher
+    stdc++fs
+    pthread
+)
+
+# Link libraries for HLS watcher with SFTP
+target_link_libraries(hls_watcher_sftp
     stdc++fs
     pthread
 )
@@ -101,8 +108,17 @@ target_compile_options(hls_watcher PRIVATE
     -Wpedantic
 )
 
+target_compile_options(hls_watcher_sftp PRIVATE 
+    -O3 
+    -march=native 
+    -mtune=native
+    -Wall
+    -Wextra
+    -Wpedantic
+)
+
 # Installation
-install(TARGETS video_converter video_converter_abr video_converter_hls hls_watcher
+install(TARGETS video_converter video_converter_abr video_converter_hls hls_watcher hls_watcher_sftp
     RUNTIME DESTINATION bin
 )
 

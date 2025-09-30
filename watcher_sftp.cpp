@@ -15,6 +15,7 @@
 #include <numeric>
 #include <signal.h>
 #include <regex>
+#include <random>
 
 namespace fs = std::filesystem;
 
@@ -246,11 +247,197 @@ private:
         return false;
     }
     
+    std::string generateUniqueID(const std::string& prefix, int length = 16) {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_int_distribution<> dis(0, 9);
+        
+        std::stringstream id;
+        id << prefix;
+        for (int i = prefix.length(); i < length; i++) {
+            id << dis(gen);
+        }
+        return id.str();
+    }
+    
+    bool generatePosters(const fs::path& input_file, const fs::path& output_dir, const std::string& basename) {
+        log("Generating posters from video: " + input_file.string());
+        
+        // Generate poster at 10% and 30% of video duration
+        std::string poster1 = (output_dir / (basename + "-poster1.jpg")).string();
+        std::string poster2 = (output_dir / (basename + "-poster2.jpg")).string();
+        
+        // Get video duration
+        std::stringstream duration_cmd;
+        duration_cmd << "ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 \"" 
+                     << input_file.string() << "\" 2>/dev/null";
+        
+        FILE* pipe = popen(duration_cmd.str().c_str(), "r");
+        if (!pipe) {
+            log("ERROR: Failed to get video duration");
+            return false;
+        }
+        
+        char buffer[128];
+        std::string duration_str;
+        while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+            duration_str += buffer;
+        }
+        pclose(pipe);
+        
+        float duration = 10.0f; // default
+        try {
+            duration = std::stof(duration_str);
+        } catch (...) {
+            log("WARNING: Could not parse video duration, using default positions");
+        }
+        
+        // Generate poster 1 at 10% of video
+        float pos1 = duration * 0.1f;
+        std::stringstream cmd1;
+        cmd1 << "ffmpeg -ss " << pos1 << " -i \"" << input_file.string() << "\" ";
+        cmd1 << "-vf \"scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2\" ";
+        cmd1 << "-vframes 1 -q:v 2 -loglevel error \"" << poster1 << "\"";
+        
+        if (system(cmd1.str().c_str()) != 0) {
+            log("ERROR: Failed to generate poster1");
+            return false;
+        }
+        
+        // Generate poster 2 at 30% of video
+        float pos2 = duration * 0.3f;
+        std::stringstream cmd2;
+        cmd2 << "ffmpeg -ss " << pos2 << " -i \"" << input_file.string() << "\" ";
+        cmd2 << "-vf \"scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2\" ";
+        cmd2 << "-vframes 1 -q:v 2 -loglevel error \"" << poster2 << "\"";
+        
+        if (system(cmd2.str().c_str()) != 0) {
+            log("ERROR: Failed to generate poster2");
+            return false;
+        }
+        
+        log("Posters generated successfully");
+        return true;
+    }
+    
+    bool generateVODXML(const fs::path& output_dir, const std::string& basename, const std::string& title = "") {
+        log("Generating VOD XML metadata: " + basename);
+        
+        // Generate unique IDs
+        std::string prod_id = generateUniqueID("PROD", 19);
+        std::string asset_id = generateUniqueID("ASST", 19);
+        std::string poster_id = generateUniqueID("ASST", 19);
+        
+        // Get current date
+        auto now = std::chrono::system_clock::now();
+        auto time_t = std::chrono::system_clock::to_time_t(now);
+        std::stringstream date_stream;
+        date_stream << std::put_time(std::localtime(&time_t), "%Y-%m-%d");
+        std::string current_date = date_stream.str();
+        
+        // Calculate end date (5 years from now)
+        auto end_time = now + std::chrono::hours(24 * 365 * 5);
+        auto end_time_t = std::chrono::system_clock::to_time_t(end_time);
+        std::stringstream end_date_stream;
+        end_date_stream << std::put_time(std::localtime(&end_time_t), "%Y-%m-%dT23:59:59");
+        std::string end_date = end_date_stream.str();
+        
+        // Use basename as title if not provided
+        std::string video_title = title.empty() ? basename : title;
+        
+        // Create XML file
+        fs::path xml_path = output_dir / ("vod-" + basename + ".xml");
+        std::ofstream xml(xml_path);
+        
+        if (!xml.is_open()) {
+            log("ERROR: Cannot create VOD XML file");
+            return false;
+        }
+        
+        xml << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+        xml << "<ADI>\n";
+        xml << "  <Metadata>\n";
+        xml << "    <AMS Asset_Class=\"package\" Asset_ID=\"" << prod_id << "\" ";
+        xml << "Asset_Name=\"" << video_title << " HD\" ";
+        xml << "Creation_Date=\"" << current_date << "\" ";
+        xml << "Description=\"" << video_title << " HD Package\" ";
+        xml << "Provider=\"000600\" Verb=\"\" Version_Major=\"1\" Version_Minor=\"0\" />\n";
+        xml << "  </Metadata>\n";
+        xml << "  <Asset>\n";
+        xml << "    <Metadata>\n";
+        xml << "      <AMS Asset_Class=\"title\" Asset_ID=\"" << prod_id << "\" ";
+        xml << "Asset_Name=\"" << video_title << " HD Title\" ";
+        xml << "Creation_Date=\"" << current_date << "\" ";
+        xml << "Description=\"" << video_title << " HD Title\" ";
+        xml << "Provider=\"000600\" Verb=\"\" Version_Major=\"1\" Version_Minor=\"0\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Type\" Value=\"title\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Year\" Value=\"2024\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Category\" Value=\"VODAll/ფავორიტი\" />\n";
+        xml << "      <App_Data App=\"MOD\" Language=\"en\" Name=\"Genre\" Value=\"General\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Licensing_Window_Start\" Value=\"" << current_date << "\"/>\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Licensing_Window_End\" Value=\"" << end_date << "\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Country_of_Origin\" Value=\"1\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Preview_Period\" Value=\"300\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Suggested_Price\" Value=\"0\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Is_Series\" Value=\"N\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Rating\" Value=\"General\" />\n";
+        xml << "      <App_Data App=\"MOD\" Language=\"en\" Name=\"Title\" Value=\"" << video_title << "\" />\n";
+        xml << "      <App_Data App=\"MOD\" Language=\"ka\" Name=\"Title\" Value=\"" << video_title << "\" />\n";
+        xml << "      <App_Data App=\"MOD\" Language=\"ru\" Name=\"Title\" Value=\"" << video_title << "\" />\n";
+        xml << "      <App_Data App=\"MOD\" Language=\"en\" Name=\"Summary_Medium\" Value=\"" << video_title << "\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Summary_Medium\" Language=\"ka\" Value=\"" << video_title << "\" />\n";
+        xml << "      <App_Data App=\"MOD\" Name=\"Summary_Medium\" Language=\"ru\" Value=\"" << video_title << "\" />\n";
+        xml << "    </Metadata>\n";
+        xml << "    <Asset>\n";
+        xml << "      <Metadata>\n";
+        xml << "        <AMS Asset_Class=\"movie\" Asset_ID=\"" << asset_id << "\" ";
+        xml << "Asset_Name=\"" << video_title << " HD Content\" ";
+        xml << "Creation_Date=\"" << current_date << "\" ";
+        xml << "Description=\"" << video_title << " HD Content\" ";
+        xml << "Provider=\"000600\" Verb=\"\" Version_Major=\"1\" Version_Minor=\"0\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Encryption\" Value=\"N\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Type\" Value=\"movie\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"HDContent\" Value=\"Y\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Languages\" Value=\"ka\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Subtitle_Languages\" Value=\"\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Bit_Rate\" Value=\"3500\" />\n";
+        xml << "        <App_Data Value=\"WEBTV\" Name=\"Domain\" App=\"MOD\"/>\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Encoder_Mode\" Value=\"3\"/>\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"MimeType\" Value=\"HLS\"/>\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"IsPreview\" Value=\"Y\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"PreviewDuration\" Value=\"300\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"PreviewStartTime\" Value=\"0\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Video_Codec_Type\" Value=\"2\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Audio_Codec_Type\" Value=\"AAC\" />\n";
+        xml << "      </Metadata>\n";
+        xml << "      <Content Value=\"playlist.m3u8\" />\n";
+        xml << "    </Asset>\n";
+        xml << "    <Asset>\n";
+        xml << "      <Metadata>\n";
+        xml << "        <AMS Asset_Class=\"box cover\" Asset_ID=\"" << poster_id << "\" ";
+        xml << "Asset_Name=\"" << video_title << " HD Poster\" ";
+        xml << "Creation_Date=\"" << current_date << "\" ";
+        xml << "Description=\"" << video_title << " HD Poster\" ";
+        xml << "Provider=\"000600\" Verb=\"\" Version_Major=\"1\" Version_Minor=\"0\" />\n";
+        xml << "        <App_Data App=\"MOD\" Name=\"Type\" Value=\"poster\" />\n";
+        xml << "      </Metadata>\n";
+        xml << "      <Content Value=\"" << basename << "-poster1.jpg\" />\n";
+        xml << "    </Asset>\n";
+        xml << "  </Asset>\n";
+        xml << "</ADI>\n";
+        
+        xml.close();
+        log("VOD XML generated: " + xml_path.string());
+        return true;
+    }
+    
     bool convertToHLS(const fs::path& input_file, const fs::path& output_dir) {
         log("Starting HLS conversion: " + input_file.string());
         
         // Create output directory
         fs::create_directories(output_dir);
+        
+        std::string basename = input_file.stem().string();
         
         for (const auto& profile : config.profiles) {
             fs::path profile_dir = output_dir / profile.folder_name;
@@ -305,6 +492,17 @@ private:
         }
         
         playlist.close();
+        
+        // Generate posters from the input video
+        if (!generatePosters(input_file, output_dir, basename)) {
+            log("WARNING: Failed to generate posters, continuing anyway");
+        }
+        
+        // Generate VOD XML metadata
+        if (!generateVODXML(output_dir, basename)) {
+            log("WARNING: Failed to generate VOD XML, continuing anyway");
+        }
+        
         log("HLS conversion completed: " + output_dir.string());
         return true;
     }

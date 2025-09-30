@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ADI>
+  <!-- ============================================================= -->
+  <!-- VOD METADATA TEMPLATE FOR MAGTI/OTT SYSTEM                   -->
+  <!-- Place this XML file in the same directory as video files     -->
+  <!-- ============================================================= -->
+  
+  <!-- Package Metadata (Container for all assets) -->
+  <Metadata>
+    <AMS 
+      Asset_Class="package" 
+      Asset_ID="PROD0000000000000000"
+      Asset_Name="MOVIE_TITLE_HD" 
+      Creation_Date="2025-01-01" 
+      Description="MOVIE_TITLE_HD Package" 
+      Provider="000600" 
+      Verb="" 
+      Version_Major="1" 
+      Version_Minor="0" />
+  </Metadata>
+  
+  <!-- Main Title Asset -->
+  <Asset>
+    <Metadata>
+      <!-- Title Asset Metadata -->
+      <AMS 
+        Asset_Class="title" 
+        Asset_ID="PROD0000000000000000"
+        Asset_Name="MOVIE_TITLE_HD Title" 
+        Creation_Date="2025-01-01" 
+        Description="MOVIE_TITLE_HD Title" 
+        Provider="000600" 
+        Verb="" 
+        Version_Major="1" 
+        Version_Minor="0" />
+      
+      <!-- Basic Information -->
+      <App_Data App="MOD" Name="Type" Value="title" />
+      <App_Data App="MOD" Name="Year" Value="2024" />
+      
+      <!-- Category: Use forward slash for hierarchy -->
+      <!-- Examples: Videoshop/ომი, VODAll/ფავორიტი -->
+      <App_Data App="MOD" Name="Category" Value="Videoshop/კატეგორია" />
+      
+      <!-- Genre in different languages -->
+      <App_Data App="MOD" Language="en" Name="Genre" Value="Drama" />
+      
+      <!-- Licensing Window (Required) -->
+      <!-- Format: YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS -->
+      <App_Data App="MOD" Name="Licensing_Window_Start" Value="2025-01-01"/>
+      <App_Data App="MOD" Name="Licensing_Window_End" Value="2030-12-31T23:59:59" />
+      
+      <!-- Country of Origin (1 = first region, etc.) -->
+      <App_Data App="MOD" Name="Country_of_Origin" Value="1" />
+      
+      <!-- Preview Period in seconds (0 = no preview) -->
+      <App_Data App="MOD" Name="Preview_Period" Value="300" />
+      
+      <!-- Price in local currency (0 = free) -->
+      <App_Data App="MOD" Name="Suggested_Price" Value="0" />
+      
+      <!-- Is this a series? Y/N -->
+      <App_Data App="MOD" Name="Is_Series" Value="N" />
+      
+      <!-- Rating: General, PG, PG-13, R, NC-17 -->
+      <App_Data App="MOD" Name="Rating" Value="General" />
+      
+      <!-- Title in multiple languages (Required) -->
+      <App_Data App="MOD" Language="en" Name="Title" Value="ENGLISH_TITLE" />
+      <App_Data App="MOD" Language="ka" Name="Title" Value="ქართული_სათაური" />
+      <App_Data App="MOD" Language="ru" Name="Title" Value="РУССКОЕ_НАЗВАНИЕ" />
+      
+      <!-- Description in multiple languages (Required) -->
+      <App_Data App="MOD" Language="en" Name="Summary_Medium" Value="English description of the movie content goes here." />
+      <App_Data App="MOD" Name="Summary_Medium" Language="ka" Value="ფილმის ქართული აღწერა." />
+      <App_Data App="MOD" Name="Summary_Medium" Language="ru" Value="Описание фильма на русском языке." />
+      
+      <!-- Cast and Crew (Optional) -->
+      <!-- Use comma to separate multiple names -->
+      <App_Data App="MOD" Name="Actors" Language="en" Value="Actor One, Actor Two, Actor Three" />
+      <App_Data App="MOD" Name="Director" Language="en" Value="Director Name" />
+      <App_Data App="MOD" Name="Producers" Value="Producer Name" />
+    </Metadata>
+    
+    <!-- Movie Content Asset -->
+    <Asset>
+      <Metadata>
+        <!-- Movie Asset Metadata -->
+        <AMS 
+          Asset_Class="movie" 
+          Asset_ID="ASST0000000000000000"
+          Asset_Name="MOVIE_TITLE_HD Content" 
+          Creation_Date="2025-01-01" 
+          Description="MOVIE_TITLE_HD Content" 
+          Provider="000600" 
+          Verb="" 
+          Version_Major="1" 
+          Version_Minor="0" />
+        
+        <!-- Encryption Settings -->
+        <App_Data App="MOD" Name="Encryption" Value="N" />
+        
+        <!-- Content Type -->
+        <App_Data App="MOD" Name="Type" Value="movie" />
+        
+        <!-- HD Content Flag (Y=HD, N=SD) -->
+        <App_Data App="MOD" Name="HDContent" Value="Y" />
+        
+        <!-- Language Settings -->
+        <App_Data App="MOD" Name="Languages" Value="en" />
+        <App_Data App="MOD" Name="Subtitle_Languages" Value="en" />
+        
+        <!-- Bitrate in kbps (3500 for HD, 1500 for SD) -->
+        <App_Data App="MOD" Name="Bit_Rate" Value="3500" />
+        
+        <!-- Domain: IPTV or WEBTV -->
+        <App_Data Value="WEBTV" Name="Domain" App="MOD"/>
+        
+        <!-- Encoder Mode (1=Standard, 2=Advanced, 3=HLS) -->
+        <App_Data App="MOD" Name="Encoder_Mode" Value="3"/>
+        
+        <!-- MimeType for HLS content -->
+        <App_Data App="MOD" Name="MimeType" Value="HLS"/>
+        
+        <!-- Preview Settings -->
+        <App_Data App="MOD" Name="IsPreview" Value="Y" />
+        <App_Data App="MOD" Name="PreviewDuration" Value="300" />
+        <App_Data App="MOD" Name="PreviewStartTime" Value="0" />
+        
+        <!-- Codec Information -->
+        <!-- Video_Codec_Type: 1=MPEG2, 2=H.264, 3=H.265 -->
+        <App_Data App="MOD" Name="Video_Codec_Type" Value="2" />
+        <App_Data App="MOD" Name="Audio_Codec_Type" Value="AAC" />
+      </Metadata>
+      
+      <!-- Content File Reference -->
+      <!-- For HLS: index.m3u8 or playlist.m3u8 -->
+      <!-- For TS: filename.ts -->
+      <Content Value="index.m3u8" />
+    </Asset>
+    
+    <!-- Poster/Thumbnail Asset (Optional but recommended) -->
+    <Asset>
+      <Metadata>
+        <!-- Poster Asset Metadata -->
+        <AMS 
+          Asset_Class="box cover" 
+          Asset_ID="ASST0000000000000001"
+          Asset_Name="MOVIE_TITLE_HD Poster" 
+          Creation_Date="2025-01-01" 
+          Description="MOVIE_TITLE_HD Poster" 
+          Provider="000600" 
+          Verb="" 
+          Version_Major="1" 
+          Version_Minor="0" />
+        
+        <!-- Poster Type -->
+        <App_Data App="MOD" Name="Type" Value="poster" />
+      </Metadata>
+      
+      <!-- Poster File Reference -->
+      <!-- Supported formats: .jpg, .png, .gif -->
+      <Content Value="poster.jpg" />
+    </Asset>
+  </Asset>
+</ADI>

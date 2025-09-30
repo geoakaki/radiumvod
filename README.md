@@ -36,16 +36,44 @@ A high-performance video processing system that converts videos to H.264/H.265 f
 git clone https://github.com/geoakaki/radiumvod.git
 cd radiumvod
 
-# Run the installation script (requires sudo)
+# Full installation (daemon mode) - Linux/macOS
 sudo ./install.sh
+
+# Install only the binary
+sudo ./install.sh --binary-only
+
+# Skip dependency installation
+sudo ./install.sh --skip-deps
+
+# Use existing binary (skip build)
+sudo ./install.sh --skip-build
 ```
 
+#### Installation Options
+
+- `--daemon` (default) - Full installation with system service
+- `--binary-only` - Install only the radiumvod binary
+- `--skip-deps` - Skip dependency installation
+- `--skip-build` - Use existing binary from build directory
+
 The installation script will:
-- Install required dependencies
-- Build the binary
-- Create system user and directories
-- Install systemd service
+- Install required dependencies (unless --skip-deps)
+- Build the binary (unless --skip-build)
+- Create system user and directories (daemon mode only)
+- Install systemd/launchd service (daemon mode only)
 - Configure the system
+
+### Platform Support
+
+- **Linux**: Ubuntu, Debian, Fedora, RHEL, CentOS, Arch Linux
+- **macOS**: Version 10.15+ (Intel and Apple Silicon M1/M2/M3/M4)
+
+### Update
+
+```bash
+# Update to latest version
+sudo ./update.sh
+```
 
 ### Basic Usage
 
@@ -192,7 +220,9 @@ The daemon mode uses a JSON configuration file located at `/etc/radiumvod/radium
 /var/log/radiumvod.log          # Log file
 ```
 
-### Systemd Service
+### System Service
+
+#### Linux (systemd)
 
 The service runs as a system daemon with automatic restart on failure:
 
@@ -208,6 +238,20 @@ sudo systemctl disable radiumvod   # Disable on boot
 # View logs
 sudo journalctl -u radiumvod -f    # Follow logs
 sudo journalctl -u radiumvod -n 50 # Last 50 lines
+```
+
+#### macOS (launchd)
+
+```bash
+# Service management
+sudo launchctl load /Library/LaunchDaemons/com.radiumvod.plist     # Start service
+sudo launchctl unload /Library/LaunchDaemons/com.radiumvod.plist   # Stop service
+
+# Check status
+sudo launchctl list | grep radiumvod
+
+# View logs
+tail -f /var/log/radiumvod.log
 ```
 
 ## Workflow Example
@@ -252,7 +296,8 @@ sudo apt-get install -y \
     libswresample-dev \
     libavfilter-dev \
     libx264-dev \
-    ffmpeg
+    ffmpeg \
+    sshpass
 ```
 
 #### Fedora/RHEL/CentOS
@@ -263,7 +308,8 @@ sudo dnf install -y \
     pkgconfig \
     ffmpeg-devel \
     x264-devel \
-    ffmpeg
+    ffmpeg \
+    sshpass
 ```
 
 #### Arch Linux
@@ -272,7 +318,20 @@ sudo pacman -S \
     base-devel \
     cmake \
     ffmpeg \
-    x264
+    x264 \
+    sshpass
+```
+
+#### macOS
+```bash
+# Install Homebrew if not present
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install dependencies
+brew install cmake pkg-config ffmpeg x264
+
+# For SFTP support (optional)
+brew install hudochenkov/sshpass/sshpass
 ```
 
 ### Manual Build
@@ -285,7 +344,8 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 
 # Build
-make -j$(nproc)
+make -j$(nproc)  # Linux
+make -j$(sysctl -n hw.ncpu)  # macOS
 
 # Install (optional)
 sudo make install
@@ -312,7 +372,8 @@ Note: Media directories in `/var/media/` are preserved.
 RadiumVOD is optimized for performance:
 - Multi-threaded encoding (uses all CPU cores)
 - Hardware acceleration support (when available)
-- Native CPU instruction optimization (`-march=native`)
+- Native CPU instruction optimization on Linux (`-march=native`)
+- Platform-optimized builds for Apple Silicon (M1/M2/M3/M4)
 - Efficient memory usage with streaming processing
 
 ## Troubleshooting

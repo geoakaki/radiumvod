@@ -531,15 +531,20 @@ private:
                 batch << "cd " << config.sftp_remote_path << "\n";
             }
             
-            // Upload XML file to root of remote_path
+            // Create directory for media files first
+            batch << "-mkdir " << remote_name << "\n";  // Use -mkdir to ignore error if exists
+            
+            // Upload XML file to root of remote_path (stay in remote_path root)
             fs::path xml_file = local_dir / ("vod-" + remote_name + ".xml");
             if (fs::exists(xml_file)) {
                 batch << "put \"" << xml_file.string() << "\" \"vod-" << remote_name << ".xml\"\n";
             }
             
-            // Create directory for media files
-            batch << "-mkdir " << remote_name << "\n";  // Use -mkdir to ignore error if exists
+            // Now change to media directory for other files
             batch << "cd " << remote_name << "\n";
+            
+            // Track directories we've already created
+            std::set<std::string> created_dirs;
             
             // Upload all files and directories except XML
             for (const auto& entry : fs::recursive_directory_iterator(local_dir)) {
@@ -553,8 +558,13 @@ private:
                     fs::path rel_path = fs::relative(entry.path(), local_dir);
                     fs::path remote_file_dir = rel_path.parent_path();
                     
+                    // Only create directory if we haven't created it yet
                     if (!remote_file_dir.empty() && remote_file_dir != ".") {
-                        batch << "-mkdir " << remote_file_dir.string() << "\n";
+                        std::string dir_str = remote_file_dir.string();
+                        if (created_dirs.find(dir_str) == created_dirs.end()) {
+                            batch << "-mkdir " << dir_str << "\n";
+                            created_dirs.insert(dir_str);
+                        }
                     }
                     
                     batch << "put \"" << entry.path().string() << "\" \"" 
